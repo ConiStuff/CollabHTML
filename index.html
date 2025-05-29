@@ -1,0 +1,76 @@
+<HTML>
+    <head>
+        <title>CollabHTML</title>
+        <meta charset="UTF-8" />    
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />    
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    </head>
+    <body>
+        <div class="flex flex-row w-full min-h-screen bg-gray-50 dark:bg-slate-900">
+            <div class="flex flex-col items-center w-1/2 p-6">
+                <div class="mx-auto flex max-w-sm items-center gap-x-4 rounded-xl bg-white p-6 shadow-lg outline outline-black/5 dark:bg-slate-800 dark:shadow-none dark:-outline-offset-1 dark:outline-white/10">
+                    <div>
+                        <div class="text-xl font-medium text-black dark:text-white">CollabHTML</div>
+                        <br>
+                        <p>CollabHTML is a platform where you can collaborate on a website, It's anarchy (other than a few rules) out here, so stay vigilant!</p>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-center w-full">
+                    <iframe 
+                        id="collab-iframe"
+                        src="server/collab.html"
+                        class="rounded-xl border border-gray-200 shadow-lg w-full max-w-2xl h-[600px] dark:border-slate-700"
+                        title="CollabHTML Live"
+                    ></iframe>
+                </div>
+            </div>
+            <div class="flex flex-col w-1/2 p-6">
+                <div class="flex flex-col h-full w-full">
+                    <label for="collab-source" class="mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">Edit collab.html Source</label>
+                    <textarea
+                        id="collab-source"
+                        class="flex-1 w-full rounded-xl border border-gray-300 bg-white dark:bg-slate-800 dark:text-white p-4 font-mono text-sm shadow-lg resize-none"
+                        style="min-height: 600px;"
+                        placeholder="Edit the HTML source for collab.html here..."
+                    ></textarea>
+                    <button id="save-collab" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+                    <span id="save-status" class="ml-4 text-sm"></span>
+                </div>
+            </div>
+        </div>
+        <script>
+        async function loadCollabSource() {
+            const textarea = document.getElementById('collab-source');
+            const status = document.getElementById('save-status');
+            try {
+                const res = await fetch('/collab-source');
+                if (!res.ok) throw new Error('Failed to load source');
+                textarea.value = await res.text();
+                status.textContent = '';
+            } catch (e) {
+                status.textContent = 'Error loading source.';
+            }
+        }
+        async function saveCollabSource() {
+            const textarea = document.getElementById('collab-source');
+            const status = document.getElementById('save-status');
+            status.textContent = 'Saving...';
+            try {
+                const res = await fetch('/collab-source', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: textarea.value
+                });
+                if (!res.ok) throw new Error('Save failed');
+                status.textContent = 'Saved!';
+                // Reload iframe
+                document.getElementById('collab-iframe').src = 'server/collab.html?' + Date.now();
+            } catch (e) {
+                status.textContent = 'Error saving.';
+            }
+        }
+        document.getElementById('save-collab').addEventListener('click', saveCollabSource);
+        window.addEventListener('DOMContentLoaded', loadCollabSource);
+        </script>
+    </body>
+</HTML>
